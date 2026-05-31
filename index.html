@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一个轻量的中英文台词排练工具：拆分文本、朗读、录音并导出完整排练音频。"
+    />
+    <link rel="icon" href="data:," />
+    <title>台词排练器</title>
+    <link rel="stylesheet" href="./styles.css?v=4" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">REHEARSAL DESK</p>
+        <h1>把文字变成<br /><span>可以开口练习的台词。</span></h1>
+        <p class="hero__intro">
+          粘贴中文、英文或混合文本，逐句听示范、录下自己的声音，再导出一段完整录音。
+        </p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel input-panel" aria-labelledby="script-heading">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">STEP 01</p>
+            <h2 id="script-heading">输入文本</h2>
+          </div>
+          <div class="heading-buttons">
+            <button class="text-button" id="toggle-history" type="button">历史</button>
+            <button class="text-button" id="load-example" type="button">载入示例</button>
+          </div>
+        </div>
+
+        <div class="history-panel" id="history-panel" hidden>
+          <p class="history-empty" id="history-empty">暂无历史记录</p>
+          <ul class="history-list" id="history-list"></ul>
+        </div>
+
+        <textarea
+          id="script-input"
+          rows="10"
+          placeholder="在这里粘贴台词、演讲稿或对白……"
+        ></textarea>
+
+        <div class="toolbar">
+          <button class="primary-button" id="split-sentences" type="button">
+            按句子拆分
+          </button>
+          <button class="secondary-button" id="split-paragraphs" type="button">
+            按段落拆分
+          </button>
+        </div>
+      </section>
+
+      <section class="panel voice-panel" aria-labelledby="voice-heading">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">STEP 02</p>
+            <h2 id="voice-heading">选择朗读音色</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="speech-provider">朗读音色来源</label>
+        <select id="speech-provider">
+          <option value="melotts">本地 MeloTTS</option>
+          <option value="elevenlabs">在线 ElevenLabs</option>
+          <option value="doubao">在线豆包语音</option>
+          <option value="browser">浏览器系统音色</option>
+        </select>
+
+        <div class="provider-options" id="melotts-options">
+          <label class="field-label style-label" for="melotts-speed">MeloTTS 中文音色</label>
+          <select id="melotts-speed">
+            <option value="0.8">较慢 · 0.8 倍速</option>
+            <option value="1" selected>自然 · 1.0 倍速</option>
+            <option value="1.2">稍快 · 1.2 倍速</option>
+            <option value="1.5">快速 · 1.5 倍速</option>
+          </select>
+          <p class="helper-text">
+            本机生成，支持中英混读。首次使用时需要等待模型载入。
+          </p>
+        </div>
+
+        <div class="provider-options" id="elevenlabs-options" hidden>
+          <label class="field-label style-label" for="elevenlabs-voice">ElevenLabs 在线音色</label>
+          <select id="elevenlabs-voice">
+            <option value="">正在检查 ElevenLabs 配置……</option>
+          </select>
+          <p class="helper-text">
+            在线生成，只需配置 API 密钥。系统会自动选择一个可用音色，并隐藏当前套餐不能通过 API 使用的库音色。
+          </p>
+        </div>
+
+        <div class="provider-options" id="doubao-options" hidden>
+          <label class="field-label style-label" for="doubao-voice">豆包语音在线音色</label>
+          <select id="doubao-voice">
+            <option value="">正在检查豆包语音配置……</option>
+          </select>
+          <label class="field-label style-label" for="doubao-speed">豆包语音语速</label>
+          <select id="doubao-speed">
+            <option value="0.8">较慢 · 0.8 倍速</option>
+            <option value="1" selected>自然 · 1.0 倍速</option>
+            <option value="1.2">稍快 · 1.2 倍速</option>
+            <option value="1.5">快速 · 1.5 倍速</option>
+          </select>
+          <p class="helper-text">
+            在线生成。可在本机配置文件的 voices 列表中添加多个音色。
+          </p>
+        </div>
+
+        <div class="provider-options" id="browser-options" hidden>
+          <label class="field-label" for="voice-select">浏览器可用音色</label>
+          <select id="voice-select">
+            <option value="">正在加载音色……</option>
+          </select>
+          <p class="helper-text">
+            系统音色无需 API 密钥，可随时即时朗读，但不能直接导出。
+          </p>
+        </div>
+      </section>
+
+      <section class="workspace" aria-labelledby="lines-heading">
+        <div class="workspace-heading">
+          <div>
+            <p class="step-label">STEP 03</p>
+            <h2 id="lines-heading">逐句排练</h2>
+          </div>
+          <p id="line-count">还没有拆分台词</p>
+        </div>
+
+        <div class="empty-state" id="empty-state">
+          <p class="empty-state__number">01</p>
+          <h3>从一段文字开始</h3>
+          <p>拆分后，每一句都会成为一个可以朗读、编辑和录音的独立片段。</p>
+        </div>
+
+        <div class="line-list" id="line-list"></div>
+      </section>
+
+      <section class="export-panel" aria-labelledby="export-heading">
+        <div>
+          <p class="step-label">STEP 04</p>
+          <h2 id="export-heading">生成完整录音</h2>
+          <p>
+            自己的录音优先；没有录音时会使用已经生成的音频。其余句子会被跳过。
+          </p>
+        </div>
+        <button class="primary-button export-button" id="export-recordings" type="button">
+          导出我的完整录音
+        </button>
+      </section>
+    </main>
+
+    <template id="line-template">
+      <article class="line-card">
+        <div class="line-card__meta">
+          <span class="line-number"></span>
+          <span class="recording-status">等待录音</span>
+        </div>
+        <textarea class="line-text" rows="2" aria-label="台词内容"></textarea>
+        <div class="audio-tracks">
+          <div class="audio-track natural-track">
+            <button class="track-trigger natural-speak-button" type="button" aria-label="生成朗读" title="生成朗读">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.25-3.9v7.8A4.5 4.5 0 0 0 16.5 12Zm-2.25-8.68v2.06a7 7 0 0 1 0 13.24v2.06a9 9 0 0 0 0-17.36Z" />
+              </svg>
+            </button>
+            <button class="waveform-button natural-waveform-button" type="button" aria-label="播放生成音频">
+              <span class="track-label">朗读示范</span>
+              <span class="track-placeholder">点击左侧图标生成朗读</span>
+              <span class="waveform natural-waveform" aria-hidden="true"></span>
+              <span class="track-playhead natural-playhead" aria-hidden="true"></span>
+            </button>
+            <div class="track-actions natural-actions">
+              <button class="track-action clear-natural-button" type="button" aria-label="清除生成音频" title="清除生成音频">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7Zm10-16H7V3h3l1-1h2l1 1h3v2Z" /></svg>
+              </button>
+              <button class="track-action save-natural-button" type="button" aria-label="保存生成音频" title="保存生成音频">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 3h2v10.17l3.59-3.58L18 11l-6 6-6-6 1.41-1.41L11 13.17V3Zm-6 16h14v2H5v-2Z" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="audio-track recording-track">
+            <button class="track-trigger record-button" type="button" aria-label="开始录音" title="开始录音">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z" />
+              </svg>
+            </button>
+            <button class="waveform-button recording-waveform-button" type="button" aria-label="播放录音">
+              <span class="track-label">我的录音</span>
+              <span class="track-placeholder">点击左侧图标开始录音</span>
+              <span class="waveform recording-waveform" aria-hidden="true"></span>
+              <span class="track-playhead recording-playhead" aria-hidden="true"></span>
+            </button>
+            <div class="track-actions recording-actions">
+              <button class="track-action clear-recording-button" type="button" aria-label="清除录音" title="清除录音">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7Zm10-16H7V3h3l1-1h2l1 1h3v2Z" /></svg>
+              </button>
+              <button class="track-action save-recording-button" type="button" aria-label="保存录音" title="保存录音">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 3h2v10.17l3.59-3.58L18 11l-6 6-6-6 1.41-1.41L11 13.17V3Zm-6 16h14v2H5v-2Z" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="line-card__actions">
+          <button class="icon-button delete-button" type="button" aria-label="删除这一句">
+            删除
+          </button>
+        </div>
+      </article>
+    </template>
+
+    <div class="confirm-backdrop" id="confirm-backdrop" hidden role="dialog" aria-modal="true">
+      <div class="confirm-dialog">
+        <p class="confirm-message" id="confirm-message"></p>
+        <div class="confirm-actions">
+          <button class="secondary-button" id="confirm-cancel" type="button">取消</button>
+          <button class="primary-button" id="confirm-ok" type="button">覆盖</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js?v=5"></script>
+  </body>
+</html>

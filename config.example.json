@@ -1,0 +1,23 @@
+{
+  "melotts": {
+    "speed": 1.0
+  },
+  "elevenlabs": {
+    "api_key": "",
+    "model_id": "eleven_multilingual_v2"
+  },
+  "doubao": {
+    "api_key": "",
+    "app_id": "",
+    "access_token": "",
+    "resource_id": "seed-tts-2.0",
+    "voice_type": "",
+    "voices": [
+      {
+        "name": "示例音色",
+        "voice_type": ""
+      }
+    ],
+    "speed": 1.0
+  }
+}
